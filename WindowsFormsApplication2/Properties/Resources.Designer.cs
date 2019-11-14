@@ -83,6 +83,26 @@ namespace WindowsFormsApplication2.Properties {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap cancel_gray {
+            get {
+                object obj = ResourceManager.GetObject("cancel_gray", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap cancel_gray2 {
+            get {
+                object obj = ResourceManager.GetObject("cancel_gray2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap cancel_small_ {
             get {
                 object obj = ResourceManager.GetObject("cancel(small)", resourceCulture);

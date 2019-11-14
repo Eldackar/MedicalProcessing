@@ -1,4 +1,11 @@
-﻿using AForge.Imaging.Filters;
+﻿using Accord.Imaging.Converters;
+using Accord.Imaging.Filters;
+using Accord.MachineLearning;
+using Accord.Math;
+using Accord.Math.Distances;
+using Accord.Math.Wavelets;
+using FuzzyCMeansClustering;
+using ShearletTransform;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -125,5 +132,177 @@ namespace WindowsFormsApplication2
             Bitmap sobelImage = filter.Apply(bmp);
             return sobelImage;
         }
-    }
+
+        public static Bitmap treshSauvola(this Bitmap bmp)
+        {
+            var sauvola = new SauvolaThreshold();
+            // Compute the filter
+            Bitmap sauvolaResult = sauvola.Apply(bmp);
+            return sauvolaResult;
+        }
+
+        public static Bitmap treshOtsu(this Bitmap bmp)
+        {
+            var otsu = new OtsuThreshold();
+            Bitmap otsuResult = otsu.Apply(bmp);
+            return otsuResult;
+        }
+
+        public static Bitmap applyWaveletFilter(this Bitmap bmp, int haarCoeff)
+        {
+            WaveletTransform wavelet = new WaveletTransform(new Haar(haarCoeff));
+            Bitmap waveletResult = wavelet.Apply(bmp);
+            return waveletResult;
+
+        }
+
+        public static Bitmap applyKuwaharaFilter(this Bitmap bmp)
+        {
+            Kuwahara kuwahara = new Kuwahara();
+            Bitmap kuwaharaResult = kuwahara.Apply(bmp);
+            return kuwaharaResult;
+
+        }
+        public static Bitmap applyResizeBilinear(this Bitmap bmp, int size)
+        {
+
+            ResizeBilinear filter = new ResizeBilinear(size, size);
+            // apply the filter
+            Bitmap newImage = filter.Apply(bmp);
+            return newImage;
+
+        }
+
+        /*public static Bitmap applyFuzzyCmean(this Bitmap bmp, int numClusters,    )
+        {
+            
+        }
+
+
+         public static Bitmap applyKmeanFilter(this Bitmap bmp, int k, int tolerance)
+         {
+             // Create converters to convert between Bitmap images and double[] arrays
+             var imageToArray = new ImageToArray(min: -1, max: +1);
+             var arrayToImage = new ArrayToImage(image.Width, image.Height, min: -1, max: +1);
+
+             // Transform the image into an array of pixel values
+             double[][] pixels; imageToArray.Convert(image, out pixels);
+
+
+             // Create a K-Means algorithm using given k and a
+             //  square Euclidean distance as distance metric.
+             KMeans kmeans = new KMeans(k: 5)
+             {
+                 Distance = new SquareEuclidean(),
+
+                 // We will compute the K-Means algorithm until cluster centroids
+                 // change less than 0.5 between two iterations of the algorithm
+                 Tolerance = 0.05
+             };
+
+
+             // Learn the clusters from the data
+             var clusters = kmeans.Learn(pixels);
+
+             // Use clusters to decide class labels
+             int[] labels = clusters.Decide(pixels);
+
+             // Replace every pixel with its corresponding centroid
+             double[][] replaced = pixels.Apply((x, i) => clusters.Centroids[labels[i]]);
+
+             // Retrieve the resulting image (shown in a picture box)
+             Bitmap result; arrayToImage.Convert(replaced, out result);
+         }*/
+
+        public static Bitmap applyFuzzyCMean(this Bitmap image, int clusters, int maxit, double accuracy)
+        {
+            List<ClusterPoint> points = new List<ClusterPoint>();
+
+
+            for (int row = 0; row < image.Width; ++row)
+            {
+                for (int col = 0; col < image.Height; ++col)
+                {
+
+                    System.Drawing.Color c2 = image.GetPixel(row, col);
+                    points.Add(new ClusterPoint(row, col, c2));
+
+                }
+            }
+
+
+
+            List<ClusterCentroid> centroids = new List<ClusterCentroid>();
+
+            //Create random points to use a the cluster centroids
+            Random random = new Random();
+            for (int i = 0; i < clusters; i++)
+            {
+                int randomNumber1 = random.Next(image.Width);
+                int randomNumber2 = random.Next(image.Height);
+                centroids.Add(new ClusterCentroid(randomNumber1, randomNumber2, image.GetPixel(randomNumber1, randomNumber2)));
+            }
+            FCM alg = new FCM(points, centroids, 2, image, clusters);
+            int k = 0;
+            do
+            {
+                k++;
+                alg.J = alg.CalculateObjectiveFunction();
+                alg.CalculateClusterCentroids();
+                alg.Step();
+                double Jnew = alg.CalculateObjectiveFunction();
+
+
+
+                image = (Bitmap)alg.getProcessedImage.Clone();
+
+                if (Math.Abs(alg.J - Jnew) < accuracy) break;
+            } while (maxit > k);
+            return image;
+        }
+
+        public static Bitmap applyKMean(this Bitmap image, int paramCluster)
+        {
+
+            // Create converters to convert between Bitmap images and double[] arrays
+            var imageToArray = new ImageToArray(min: -1, max: +1);
+            var arrayToImage = new ArrayToImage(image.Width, image.Height, min: -1, max: +1);
+
+            // Transform the image into an array of pixel values
+            double[][] pixels; imageToArray.Convert(image, out pixels);
+
+
+            // Create a K-Means algorithm using given k and a
+            //  square Euclidean distance as distance metric.
+            KMeans kmeans = new KMeans(k: paramCluster)
+            {
+                Distance = new SquareEuclidean(),
+
+                // We will compute the K-Means algorithm until cluster centroids
+                // change less than 0.5 between two iterations of the algorithm
+                Tolerance = 0.05
+            };
+
+
+            // Learn the clusters from the data
+            var clusters = kmeans.Learn(pixels);
+
+            // Use clusters to decide class labels
+            int[] labels = clusters.Decide(pixels);
+
+            // Replace every pixel with its corresponding centroid
+            double[][] replaced = pixels.Apply((x, i) => clusters.Centroids[labels[i]]);
+
+            // Retrieve the resulting image (shown in a picture box)
+            Bitmap result; arrayToImage.Convert(replaced, out result);
+
+            return result;
+        }
+
+        public static Bitmap applyShearlet(this Bitmap image)
+        {
+            CalculShearlet calcul = new CalculShearlet(image);
+            return calcul.Resultimage;
+        }
+    } 
 }
